@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Job Dispatch Hub</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:sans-serif;padding:2rem;background:#090d16;color:#fff;max-width:900px;margin:auto;}input,select,textarea{width:100%;margin-bottom:8px;padding:8px;background:#1e293b;border:1px solid #334155;color:#fff;}button{background:#0284c7;color:#fff;padding:8px 16px;border:none;cursor:pointer;}table{width:100%;border-collapse:collapse;margin-top:1.5rem;background:#0f172a;border-radius:8px;}th,td{padding:8px;border:1px solid #334155;text-align:left;}a{color:#38bdf8;text-decoration:none;}</style></head>
+<body>
+  <h1>Remote Command & Job Dispatch Hub</h1>
+  <p style="color:#94a3b8;margin-bottom:1.5rem;">Broadcast management payloads to client agents across the network.</p>
+
+  <form method="POST" style="background:#0f172a;padding:1.5rem;border-radius:8px;border:1px solid #1e293b;">
+    {% csrf_token %}
+    <input name="target_node" placeholder="Target Node (e.g., LAB-PC-01 or ALL-LAB-PCS)" required>
+    <select name="command_type">
+      <option value="REBOOT">System Reboot</option>
+      <option value="UPDATE">Package Update (pip/choco)</option>
+      <option value="RENAME">Hostname Normalization</option>
+      <option value="CUSTOM">Custom Shell Script</option>
+    </select>
+    <textarea name="raw_payload" placeholder="Shell command or argument payload..." required></textarea>
+    <button type="submit">Queue Job Dispatch</button>
+  </form>
+
+  <h2 style="margin-top:2rem;">Dispatched Tasks</h2>
+  <table>
+    <tr><th>Target</th><th>Command</th><th>Payload</th><th>Status</th><th>Action</th></tr>
+    {% for j in jobs %}
+      <tr>
+        <td><b>{{ j.target_node }}</b></td>
+        <td>{{ j.command_type }}</td>
+        <td><code>{{ j.raw_payload }}</code></td>
+        <td>{% if j.status == 'QUEUED' %}<span style="color:#facc15;">Queued</span>{% else %}<span style="color:#4ade80;">Executed</span>{% endif %}</td>
+        <td>{% if j.status == 'QUEUED' %}<a href="/run/{{ j.id }}/">Run Now</a>{% else %}-{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No jobs in dispatch queue.</td></tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
